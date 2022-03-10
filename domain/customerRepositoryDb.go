@@ -2,9 +2,6 @@ package domain
 
 import (
 	"database/sql"
-	"fmt"
-	"os"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -30,7 +27,7 @@ func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError
 
 	if err != nil {
 		logger.Error("Error while querying customer table " + err.Error())
-		return nil, errs.NewUnexpecteddError("unexpected database error")
+		return nil, errs.NewUnexpectedError("unexpected database error")
 	}
 
 	return customers, nil
@@ -45,24 +42,11 @@ func (d CustomerRepositoryDb) FindById(id string) (*Customer, *errs.AppError) {
 			return nil, errs.NewNotFoundError("Customer not found")
 		}
 		logger.Error("Error while scanning customer " + err.Error())
-		return nil, errs.NewUnexpecteddError("Unexpected database error")
+		return nil, errs.NewUnexpectedError("Unexpected database error")
 	}
 	return &c, nil
 }
 
-func NewCustomerRepositoryDb() CustomerRepositoryDb {
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbAddress := os.Getenv("DB_ADDRESS")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
-	dataSource := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, dbAddress, dbPort, dbName)
-	db, err := sqlx.Open("mysql", dataSource)
-	if err != nil {
-		panic(err)
-	}
-	db.SetConnMaxLifetime(time.Minute * 3)
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
-	return CustomerRepositoryDb{db}
+func NewCustomerRepositoryDb(dbClient *sqlx.DB) CustomerRepositoryDb {
+	return CustomerRepositoryDb{dbClient}
 }
