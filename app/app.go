@@ -1,8 +1,10 @@
 package app
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/veezyjay/banka/domain"
@@ -10,7 +12,7 @@ import (
 )
 
 func Start() {
-	
+
 	router := mux.NewRouter()
 
 	// wiring
@@ -22,5 +24,7 @@ func Start() {
 	router.HandleFunc("/customers/{customer_id:[0-9]+}", ch.getCustomer).Methods(http.MethodGet)
 
 	// starting server
-	log.Fatal(http.ListenAndServe("localhost:8000", router))
+	address := os.Getenv("SERVER_ADDRESS")
+	port := os.Getenv("SERVER_PORT")
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%s", address, port), router))
 }
